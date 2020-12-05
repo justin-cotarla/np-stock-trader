@@ -1,0 +1,31 @@
+{
+  "name": "np-stock-trader",
+  "version": "0.0.1",
+  "description": "Neopets Stocks Trader",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ts-node index.ts"
+  },
+  "author": "justin-cotarla",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/cookie": "^0.4.0",
+    "@types/node": "^14.14.10",
+    "@typescript-eslint/eslint-plugin": "^4.9.0",
+    "@typescript-eslint/parser": "^4.9.0",
+    "eslint": "^7.14.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-prettier": "^3.2.0",
+    "prettier": "^2.2.1",
+    "ts-node": "^9.1.0",
+    "typescript": "^4.1.2"
+  },
+  "dependencies": {
+    "axios": "^0.21.0",
+    "cookie": "^0.4.1",
+    "form-data": "^3.0.0"
+  }
+}
