@@ -21,6 +21,15 @@
     "rules": {
         "prettier/prettier": "error",
         "@typescript-eslint/explicit-function-return-type": "error",
-        "import/extensions": "off"
+        "import/extensions": "off",
+        "import/prefer-default-export": "off"
+    },
+    "settings": {
+        "import/resolver": {
+            "node": {
+                "extensions": [".js", ".jsx", ".ts", ".tsx"]
+            }
+        }
     }
 }
+

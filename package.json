@@ -5,7 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node index.ts"
+    "start": "ts-node --files src/index.ts"
   },
   "author": "justin-cotarla",
   "license": "ISC",
@@ -26,6 +26,7 @@
   "dependencies": {
     "axios": "^0.21.0",
     "cookie": "^0.4.1",
+    "dotenv": "^8.2.0",
     "form-data": "^3.0.0"
   }
 }
