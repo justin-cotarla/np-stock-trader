@@ -1,6 +1,17 @@
-import { URLSearchParams } from 'url';
 import { executeRequest, requestPage } from './networkController';
-import { StockListing } from './types/types';
+import { Portfolio, StockListing } from './types/types';
+
+const validateRegexResult = (
+    regexResult: RegExpExecArray,
+    expectedGroups: number
+): boolean => {
+    for (let i = 0; i < expectedGroups; i += 1) {
+        if (regexResult[1 + i] === undefined || regexResult[1 + i] === null) {
+            return false;
+        }
+    }
+    return true;
+};
 
 const getNP = async (): Promise<number> => {
     const regex = /<a id='npanchor' href="\/inventory.phtml">([\d,]*)<\/a>/;
@@ -21,12 +32,7 @@ const getStockListings = async (): Promise<StockListing[]> => {
 
     let currentListing = regex.exec(listingsPage);
     while (currentListing !== null) {
-        if (
-            currentListing !== null &&
-            currentListing[1] &&
-            currentListing[2] &&
-            currentListing[3]
-        ) {
+        if (currentListing !== null && validateRegexResult(currentListing, 3)) {
             listings = [
                 ...listings,
                 {
@@ -59,9 +65,40 @@ const buyStocks = async (ticker: string, quantity: number): Promise<void> => {
         amount_shares: quantity.toString(),
     };
 
-    console.log(data);
-
     await executeRequest('/process_stockmarket.phtml', data);
 };
 
-export { getNP, getStockListings, buyStocks };
+const getPortfolio = async (): Promise<Portfolio> => {
+    const tickerRegex = /<td align="center"><a href="stockmarket\.phtml\?type=buy&ticker=([A-Z]+)/g;
+    const quantityRegex = /<\/b><\/font>\n\t{4}<\/td>\n\t{4}<td align="center">\n([\d]+)\t{4}<\/td>/g;
+
+    const portfolioPage = await requestPage(
+        '/stockmarket.phtml?type=portfolio'
+    );
+
+    let portfolio: Portfolio = {};
+
+    let currentTicker = tickerRegex.exec(portfolioPage);
+    let currentQuantity = quantityRegex.exec(portfolioPage);
+
+    while (currentTicker !== null) {
+        if (
+            currentTicker !== null &&
+            validateRegexResult(currentTicker, 1) &&
+            currentQuantity !== null &&
+            validateRegexResult(currentQuantity, 1)
+        ) {
+            const ticker = currentTicker[1];
+            const volume = parseInt(currentQuantity[1], 10);
+            portfolio = {
+                ...portfolio,
+                [ticker]: volume,
+            };
+        }
+        currentTicker = tickerRegex.exec(portfolioPage);
+        currentQuantity = quantityRegex.exec(portfolioPage);
+    }
+    return portfolio;
+};
+
+export { getNP, getStockListings, buyStocks, getPortfolio };

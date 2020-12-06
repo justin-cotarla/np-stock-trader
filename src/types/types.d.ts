@@ -3,3 +3,7 @@ export interface StockListing {
     volume: number;
     price: number;
 }
+
+export interface Portfolio {
+    [ticker: string]: number;
+}
