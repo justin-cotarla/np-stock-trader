@@ -1,5 +1,14 @@
+import R from 'ramda';
+
 import { executeRequest, requestPage } from './networkController';
-import { Portfolio, StockListing } from './types/types';
+import {
+    Batch,
+    NpSellOrder,
+    Order,
+    Portfolio,
+    StockListing,
+} from './types/types';
+import { sleep } from './util';
 
 const validateRegexResult = (
     regexResult: RegExpExecArray,
@@ -20,6 +29,16 @@ const getNP = async (): Promise<number> => {
     const np = parseInt(regex.exec(indexPage)![1].replace(',', ''), 10);
 
     return np;
+};
+
+const getRefToken = (page: string): string => {
+    const refTokenRegex = /<input type='hidden' name='_ref_ck' value='([a-f\d]+)'>/;
+
+    const refTokenMatch = refTokenRegex.exec(page);
+    if (!refTokenMatch || !refTokenMatch[1]) {
+        throw new Error('Could not get _ref_ck');
+    }
+    return refTokenMatch[1];
 };
 
 const getStockListings = async (): Promise<StockListing[]> => {
@@ -44,28 +63,28 @@ const getStockListings = async (): Promise<StockListing[]> => {
         }
         currentListing = regex.exec(listingsPage);
     }
-    return listings;
+    return listings.sort(
+        ({ price: firstPrice }, { price: secondPrice }) =>
+            firstPrice - secondPrice
+    );
 };
 
-const buyStocks = async (ticker: string, quantity: number): Promise<void> => {
-    const refTokenRegex = /<input type='hidden' name='_ref_ck' value='([a-f\d]+)'>/;
-
+const buyStocks = async (orders: Order[]): Promise<void> => {
     const buyPage = await requestPage('/stockmarket.phtml?type=buy');
 
-    const refTokenMatch = refTokenRegex.exec(buyPage);
-    if (!refTokenMatch || !refTokenMatch[1]) {
-        throw new Error('Could not get _ref_ck');
-    }
-    const refToken = refTokenMatch[1];
+    const refToken = getRefToken(buyPage);
 
-    const data = {
-        _ref_ck: refToken,
-        type: 'buy',
-        ticker_symbol: ticker,
-        amount_shares: quantity.toString(),
-    };
+    orders.forEach(async ({ ticker, volume }) => {
+        const data = {
+            _ref_ck: refToken,
+            type: 'buy',
+            ticker_symbol: ticker,
+            amount_shares: volume.toString(),
+        };
 
-    await executeRequest('/process_stockmarket.phtml', data);
+        await executeRequest('/process_stockmarket.phtml', data);
+        await sleep(1000);
+    });
 };
 
 const getPortfolio = async (): Promise<Portfolio> => {
@@ -101,4 +120,126 @@ const getPortfolio = async (): Promise<Portfolio> => {
     return portfolio;
 };
 
-export { getNP, getStockListings, buyStocks, getPortfolio };
+const getBatches = async (): Promise<Batch[]> => {
+    const volumeRegex = /<tr>\n\t{7}<td align="center">(\d+)<\/td>/g;
+    const instructionRegex = /sell\[([A-Z]+)\]\[\d+\]/g;
+
+    const portfolioPage = await requestPage(
+        '/stockmarket.phtml?type=portfolio'
+    );
+
+    let availableBatches: Batch[] = [];
+
+    let currentVolume = volumeRegex.exec(portfolioPage);
+    let currentInstruction = instructionRegex.exec(portfolioPage);
+
+    while (currentVolume !== null) {
+        if (
+            currentVolume !== null &&
+            validateRegexResult(currentVolume, 1) &&
+            currentInstruction !== null &&
+            validateRegexResult(currentInstruction, 1)
+        ) {
+            const orderVolume = parseInt(currentVolume[1], 10);
+            const orderTicker = currentInstruction[1];
+            const orderInstruction = currentInstruction[0];
+
+            availableBatches = [
+                ...availableBatches,
+                {
+                    instruction: orderInstruction,
+                    ticker: orderTicker,
+                    volume: orderVolume,
+                },
+            ];
+        }
+        currentVolume = volumeRegex.exec(portfolioPage);
+        currentInstruction = instructionRegex.exec(portfolioPage);
+    }
+
+    return availableBatches;
+};
+
+const sellStock = async (orders: Order[]): Promise<void> => {
+    const portfolioPage = await requestPage(
+        '/stockmarket.phtml?type=portfolio'
+    );
+
+    const refToken = getRefToken(portfolioPage);
+    const availableBatches = await getBatches();
+
+    const orderTickers = orders.map(({ ticker }) => ticker);
+    const filteredBatches = availableBatches.filter(({ ticker }) =>
+        orderTickers.includes(ticker)
+    );
+    const groupedBatches = R.groupBy<Batch>(
+        ({ ticker }) => ticker,
+        filteredBatches
+    );
+
+    let sellOrders: NpSellOrder[] = [];
+
+    Object.entries(groupedBatches).forEach(([ticker, batches]) => {
+        const { volume } = orders?.find(
+            ({ ticker: orderTicker }) => orderTicker === ticker
+        ) ?? { undefined };
+
+        if (volume === undefined) {
+            throw new Error('Order ticker not in available batches');
+        }
+
+        const sortedBatches = batches.sort(
+            ({ volume: firstVolume }, { volume: secondVolume }) =>
+                firstVolume - secondVolume
+        );
+
+        let remainingVolume = volume;
+
+        for (let i = 0; i < sortedBatches.length; i += 1) {
+            const {
+                instruction: batchInstruction,
+                volume: batchVolume,
+            } = sortedBatches[i];
+
+            const sellVolume =
+                remainingVolume > batchVolume ? batchVolume : remainingVolume;
+            remainingVolume -= sellVolume;
+
+            sellOrders = [
+                ...sellOrders,
+                {
+                    instruction: batchInstruction,
+                    volume: sellVolume,
+                },
+            ];
+
+            if (remainingVolume === 0) {
+                break;
+            }
+        }
+    });
+
+    const data = {
+        _ref_ck: refToken,
+        type: 'sell',
+        ...sellOrders.reduce(
+            (acc, { instruction, volume }) => ({
+                ...acc,
+                [instruction]: volume,
+            }),
+            {}
+        ),
+    };
+
+    console.log(data);
+    await executeRequest('/process_stockmarket.phtml', data);
+};
+
+export {
+    getNP,
+    getStockListings,
+    buyStocks,
+    getPortfolio,
+    sellStock,
+    getBatches,
+};
