@@ -1,4 +1,5 @@
-import { requestPage } from './networkController';
+import { URLSearchParams } from 'url';
+import { executeRequest, requestPage } from './networkController';
 import { StockListing } from './types/types';
 
 const getNP = async (): Promise<number> => {
@@ -20,8 +21,6 @@ const getStockListings = async (): Promise<StockListing[]> => {
 
     let currentListing = regex.exec(listingsPage);
     while (currentListing !== null) {
-        currentListing = regex.exec(listingsPage);
-
         if (
             currentListing !== null &&
             currentListing[1] &&
@@ -37,8 +36,32 @@ const getStockListings = async (): Promise<StockListing[]> => {
                 },
             ];
         }
+        currentListing = regex.exec(listingsPage);
     }
     return listings;
 };
 
-export { getNP, getStockListings };
+const buyStocks = async (ticker: string, quantity: number): Promise<void> => {
+    const refTokenRegex = /<input type='hidden' name='_ref_ck' value='([a-f\d]+)'>/;
+
+    const buyPage = await requestPage('/stockmarket.phtml?type=buy');
+
+    const refTokenMatch = refTokenRegex.exec(buyPage);
+    if (!refTokenMatch || !refTokenMatch[1]) {
+        throw new Error('Could not get _ref_ck');
+    }
+    const refToken = refTokenMatch[1];
+
+    const data = {
+        _ref_ck: refToken,
+        type: 'buy',
+        ticker_symbol: ticker,
+        amount_shares: quantity.toString(),
+    };
+
+    console.log(data);
+
+    await executeRequest('/process_stockmarket.phtml', data);
+};
+
+export { getNP, getStockListings, buyStocks };

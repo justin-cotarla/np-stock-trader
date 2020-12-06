@@ -15,7 +15,6 @@ const baseHeaders = {
     'Content-Type': 'application/x-www-form-urlencoded',
     Host: 'www.neopets.com',
     Origin: 'http://www.neopets.com',
-    Referer: 'http://www.neopets.com/login/',
     'Upgrade-Insecure-Requests': '1',
     'User-Agent':
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36',
@@ -53,6 +52,39 @@ const authenticate = async (
     return cookies.join('; ');
 };
 
+const executeRequest = async (
+    path: string,
+    data: { [key: string]: string | undefined }
+): Promise<string> => {
+    if (cookieString === null) {
+        if (!process.env.NP_USERNAME || !process.env.NP_PASSWORD) {
+            throw new Error('NP_USERNAME and NP_PASSWORD must be set in env');
+        }
+
+        cookieString = await authenticate(
+            process.env.NP_USERNAME,
+            process.env.NP_PASSWORD
+        );
+    }
+
+    const form = new URLSearchParams(data);
+    const res = await Axios.post(
+        `${NEOPETS_BASE_URL}${path}`,
+        form.toString(),
+        {
+            validateStatus: (status) =>
+                status === 302 || (status >= 200 && status < 300),
+            maxRedirects: 0,
+            headers: {
+                ...baseHeaders,
+                'Content-Length': form.toString().length.toString(),
+                Cookie: cookieString,
+            },
+        }
+    );
+    return res.data;
+};
+
 const requestPage = async (path: string): Promise<string> => {
     if (cookieString === null) {
         if (!process.env.NP_USERNAME || !process.env.NP_PASSWORD) {
@@ -76,4 +108,4 @@ const requestPage = async (path: string): Promise<string> => {
     return res.data;
 };
 
-export { requestPage };
+export { requestPage, executeRequest };

@@ -1,11 +1,12 @@
 import dotenv from 'dotenv';
-import { getStockListings } from './neopetsApi';
+import { buyStocks, getNP, getStockListings } from './neopetsApi';
 
 dotenv.config();
 
 const start = async (): Promise<void> => {
-    const listings = await getStockListings();
-    console.log(listings);
+    console.log(await getNP());
+    await buyStocks('KBAT', 1);
+    console.log(await getNP());
 };
 
 start();
