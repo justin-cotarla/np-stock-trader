@@ -8,7 +8,6 @@ import {
     Portfolio,
     StockListing,
 } from './types/types';
-import { sleep } from './util';
 
 const validateRegexResult = (
     regexResult: RegExpExecArray,
@@ -98,7 +97,7 @@ const buyStocks = async (orders: Order[]): Promise<(Order | null)[]> => {
 
 const getPortfolio = async (): Promise<Portfolio> => {
     const tickerRegex = /<td align="center"><a href="stockmarket\.phtml\?type=buy&ticker=([A-Z]+)/g;
-    const quantityRegex = /<\/b><\/font>\n\t{4}<\/td>\n\t{4}<td align="center">\n([\d]+)\t{4}<\/td>/g;
+    const quantityRegex = /<\/b><\/font>\n\t{4}<\/td>\n\t{4}<td align="center">\n([\d,]+)\t{4}<\/td>/g;
 
     const portfolioPage = await requestPage(
         '/stockmarket.phtml?type=portfolio'
@@ -117,7 +116,7 @@ const getPortfolio = async (): Promise<Portfolio> => {
             validateRegexResult(currentQuantity, 1)
         ) {
             const ticker = currentTicker[1];
-            const volume = parseInt(currentQuantity[1], 10);
+            const volume = parseInt(currentQuantity[1].replace(',', ''), 10);
             portfolio = {
                 ...portfolio,
                 [ticker]: volume,
@@ -130,7 +129,7 @@ const getPortfolio = async (): Promise<Portfolio> => {
 };
 
 const getBatches = async (): Promise<Batch[]> => {
-    const volumeRegex = /<tr>\n\t{7}<td align="center">(\d+)<\/td>/g;
+    const volumeRegex = /<tr>\n\t{7}<td align="center">([\d,]+)<\/td>/g;
     const instructionRegex = /sell\[([A-Z]+)\]\[\d+\]/g;
 
     const portfolioPage = await requestPage(
@@ -149,7 +148,7 @@ const getBatches = async (): Promise<Batch[]> => {
             currentInstruction !== null &&
             validateRegexResult(currentInstruction, 1)
         ) {
-            const orderVolume = parseInt(currentVolume[1], 10);
+            const orderVolume = parseInt(currentVolume[1].replace(',', ''), 10);
             const orderTicker = currentInstruction[1];
             const orderInstruction = currentInstruction[0];
 

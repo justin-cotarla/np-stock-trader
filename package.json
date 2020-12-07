@@ -2,10 +2,12 @@
   "name": "np-stock-trader",
   "version": "0.0.1",
   "description": "Neopets Stocks Trader",
-  "main": "index.ts",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node --files src/index.ts"
+    "dev": "ts-node --files src/index.ts",
+    "build": "rm -rf dist/ && tsc",
+    "start": "node dist/index.js"
   },
   "author": "justin-cotarla",
   "license": "ISC",
