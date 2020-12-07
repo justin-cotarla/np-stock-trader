@@ -55,7 +55,7 @@ const authenticate = async (
 const executeRequest = async (
     path: string,
     data: { [key: string]: string | undefined }
-): Promise<string> => {
+): Promise<void> => {
     if (cookieString === null) {
         if (!process.env.NP_USERNAME || !process.env.NP_PASSWORD) {
             throw new Error('NP_USERNAME and NP_PASSWORD must be set in env');
@@ -68,21 +68,15 @@ const executeRequest = async (
     }
 
     const form = new URLSearchParams(data);
-    const res = await Axios.post(
-        `${NEOPETS_BASE_URL}${path}`,
-        form.toString(),
-        {
-            validateStatus: (status) =>
-                status === 302 || (status >= 200 && status < 300),
-            maxRedirects: 0,
-            headers: {
-                ...baseHeaders,
-                'Content-Length': form.toString().length.toString(),
-                Cookie: cookieString,
-            },
-        }
-    );
-    return res.data;
+    await Axios.post(`${NEOPETS_BASE_URL}${path}`, form.toString(), {
+        validateStatus: (status) => status === 302,
+        maxRedirects: 0,
+        headers: {
+            ...baseHeaders,
+            'Content-Length': form.toString().length.toString(),
+            Cookie: cookieString,
+        },
+    });
 };
 
 const requestPage = async (path: string): Promise<string> => {

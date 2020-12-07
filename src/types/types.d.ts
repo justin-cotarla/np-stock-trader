@@ -25,7 +25,13 @@ export interface Portfolio {
 }
 
 export interface TransactionRecord {
+    type: 'BUY' | 'SELL';
     date: Date;
     pl: number;
     orders: Order[];
-};
+}
+
+export interface BuyStrategy {
+    price: number;
+    volume: number;
+}

@@ -42,7 +42,7 @@ const getRefToken = (page: string): string => {
 };
 
 const getStockListings = async (): Promise<StockListing[]> => {
-    const regex = /company_id=[\d]+'><b>([A-Z]+)<\/b><\/a><\/td><td bgcolor='#eeeeff'>[\w\. ]+<\/td><td bgcolor='#[a-f]{6}' align=center>([\d]*)<\/td><td bgcolor='#[a-f]{6}' align=center><b>[\d]*<\/b><\/td><td bgcolor='#[a-f]{6}' align=center><b>([\d]*)<\/b><\/td><td bgcolor/g;
+    const regex = /company_id=[\d]+'><b>([A-Z]+)<\/b><\/a><\/td><td bgcolor='#eeeeff'>[\w. ]+<\/td><td bgcolor='#[a-f]{6}' align=center>([\d]*)<\/td><td bgcolor='#[a-f]{6}' align=center><b>[\d]*<\/b><\/td><td bgcolor='#[a-f]{6}' align=center><b>([\d]*)<\/b><\/td><td bgcolor/g;
     const listingsPage = await requestPage(
         '/stockmarket.phtml?type=list&full=true'
     );
@@ -69,22 +69,31 @@ const getStockListings = async (): Promise<StockListing[]> => {
     );
 };
 
-const buyStocks = async (orders: Order[]): Promise<void> => {
+const buyStocks = async (orders: Order[]): Promise<(Order | null)[]> => {
     const buyPage = await requestPage('/stockmarket.phtml?type=buy');
 
     const refToken = getRefToken(buyPage);
 
-    orders.forEach(async ({ ticker, volume }) => {
-        const data = {
-            _ref_ck: refToken,
-            type: 'buy',
-            ticker_symbol: ticker,
-            amount_shares: volume.toString(),
-        };
+    const orderPromises = orders.map(
+        async (order): Promise<Order | null> => {
+            const { ticker, volume } = order;
+            const data = {
+                _ref_ck: refToken,
+                type: 'buy',
+                ticker_symbol: ticker,
+                amount_shares: volume.toString(),
+            };
+            try {
+                await executeRequest('/process_stockmarket.phtml', data);
+            } catch (error) {
+                return null;
+            }
+            return order;
+        }
+    );
 
-        await executeRequest('/process_stockmarket.phtml', data);
-        await sleep(1000);
-    });
+    const fulfilledOrders = await Promise.all(orderPromises);
+    return fulfilledOrders;
 };
 
 const getPortfolio = async (): Promise<Portfolio> => {
@@ -231,7 +240,6 @@ const sellStock = async (orders: Order[]): Promise<void> => {
         ),
     };
 
-    console.log(data);
     await executeRequest('/process_stockmarket.phtml', data);
 };
 
