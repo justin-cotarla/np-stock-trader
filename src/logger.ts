@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { TransactionRecord } from './types/types';
 
-const logTransactonRecord = async (
+const logTransactionRecord = async (
     record: TransactionRecord
 ): Promise<void> => {
     const { date, orders, pl, type } = record;
@@ -15,4 +15,4 @@ const logTransactonRecord = async (
     await fs.promises.appendFile(global.options.logFile, `${line}\n`);
 };
 
-export { logTransactonRecord };
+export { logTransactionRecord };

@@ -1,5 +1,11 @@
-import { logTransactonRecord } from './logger';
-import { buyStocks, getNP, getPortfolio, getStockListings, sellStock } from './neopetsApi';
+import { logTransactionRecord } from './logger';
+import {
+    buyStocks,
+    getNP,
+    getPortfolio,
+    getStockListings,
+    sellStock,
+} from './neopetsApi';
 import { getSellRatio } from './sellRatio';
 import {
     BuyStrategy,
@@ -77,9 +83,9 @@ const executeBuyStrategy = async (
 
     const pl = fulfilledOrders.reduce((acc, { ticker, volume }) => {
         const stockCost =
-            stockListings.find(
+            (stockListings.find(
                 ({ ticker: listingTicker }) => listingTicker === ticker
-            )?.price ?? 0 * volume;
+            )?.price ?? 0) * volume;
         return acc - stockCost;
     }, 0);
 
@@ -90,7 +96,7 @@ const executeBuyStrategy = async (
         pl,
     };
 
-    logTransactonRecord(transactionRecord);
+    logTransactionRecord(transactionRecord);
 
     return transactionRecord;
 };
@@ -127,9 +133,9 @@ const executeSellStrategy = async (
 
     const pl = fulfilledOrders.reduce((acc, { ticker, volume }) => {
         const stockCost =
-            stockListings.find(
+            (stockListings.find(
                 ({ ticker: listingTicker }) => listingTicker === ticker
-            )?.price ?? 0 * volume;
+            )?.price ?? 0) * volume;
         return acc + stockCost;
     }, 0);
 
@@ -140,7 +146,7 @@ const executeSellStrategy = async (
         pl,
     };
 
-    logTransactonRecord(transactionRecord);
+    logTransactionRecord(transactionRecord);
 
     return transactionRecord;
 };
