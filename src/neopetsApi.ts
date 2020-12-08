@@ -41,7 +41,7 @@ const getRefToken = (page: string): string => {
 };
 
 const getStockListings = async (): Promise<StockListing[]> => {
-    const regex = /company_id=[\d]+'><b>([A-Z]+)<\/b><\/a><\/td><td bgcolor='#eeeeff'>[\w. ]+<\/td><td bgcolor='#[a-f]{6}' align=center>([\d]*)<\/td><td bgcolor='#[a-f]{6}' align=center><b>[\d]*<\/b><\/td><td bgcolor='#[a-f]{6}' align=center><b>([\d]*)<\/b><\/td><td bgcolor/g;
+    const regex = /company_id=[\d]+'><b>([A-Z]+)<\/b><\/a><\/td><td bgcolor='#eeeeff'>[\w. !-]+<\/td><td bgcolor='#[a-f]{6}' align=center>([\d]*)<\/td><td bgcolor='#[a-f]{6}' align=center><b>[\d]*<\/b><\/td><td bgcolor='#[a-f]{6}' align=center><b>([\d]*)<\/b><\/td><td bgcolor/g;
     const listingsPage = await requestPage(
         '/stockmarket.phtml?type=list&full=true'
     );
@@ -168,7 +168,7 @@ const getBatches = async (): Promise<Batch[]> => {
     return availableBatches;
 };
 
-const sellStock = async (orders: Order[]): Promise<void> => {
+const sellStock = async (orders: Order[]): Promise<Order[]> => {
     const portfolioPage = await requestPage(
         '/stockmarket.phtml?type=portfolio'
     );
@@ -240,6 +240,8 @@ const sellStock = async (orders: Order[]): Promise<void> => {
     };
 
     await executeRequest('/process_stockmarket.phtml', data);
+
+    return orders;
 };
 
 export {

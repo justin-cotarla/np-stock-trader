@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { createCommand } from 'commander';
-import { buyStrategy } from './strategy';
+import { executeBuyStrategy, executeSellStrategy } from './strategy';
 import { DefaultArgs, DEFAULT_CLI_OPTIONS } from './constants';
 import {
     getBatches,
@@ -57,13 +57,25 @@ cliOptions
         ) => {
             setConfig(cmdObj.parent);
 
-            const record = await buyStrategy({
+            const record = await executeBuyStrategy({
                 price: parseInt(price),
                 volume: parseInt(volume),
             });
             console.log(record);
         }
     );
+
+cliOptions
+    .command('sell [min-price]')
+    .description('execute sell strategy')
+    .action(async (minPrice: string = DefaultArgs.MIN_PRICE, cmdObj) => {
+        setConfig(cmdObj.parent);
+
+        const record = await executeSellStrategy({
+            minPrice: parseInt(minPrice),
+        });
+        console.log(record);
+    });
 
 cliOptions
     .command('balance')

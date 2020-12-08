@@ -47,6 +47,10 @@ export interface BuyStrategy {
     volume: number;
 }
 
+export interface SellStrategy {
+    minPrice: number;
+}
+
 export interface CliOptions {
     username: string;
     password: string;
