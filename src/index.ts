@@ -1,14 +1,13 @@
-#!/usr/bin/env node
 import dotenv from 'dotenv';
 import { program } from 'commander';
-import { buyStrategy } from './src/strategy';
-import { DefaultArgs } from './src/constants';
+import { buyStrategy } from './strategy';
+import { DefaultArgs } from './constants';
 import {
     getBatches,
     getNP,
     getPortfolio,
     getStockListings,
-} from './src/neopetsApi';
+} from './neopetsApi';
 
 dotenv.config();
 

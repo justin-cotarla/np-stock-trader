@@ -1,6 +1,6 @@
 import fs from 'fs';
+import { DEFAULT_LOG_FILE } from './constants';
 import { TransactionRecord } from './types/types';
-import { logFile } from '../config.json';
 
 const logTransactonRecord = async (
     record: TransactionRecord
@@ -13,7 +13,10 @@ const logTransactonRecord = async (
 
     const line = [date.toJSON(), type, pl.toString(), ordersString].join(', ');
 
-    await fs.promises.appendFile(logFile, `${line}\n`);
+    await fs.promises.appendFile(
+        process.env.LOG_FILE || DEFAULT_LOG_FILE,
+        `${line}\n`
+    );
 };
 
 export { logTransactonRecord };
