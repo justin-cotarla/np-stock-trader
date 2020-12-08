@@ -50,7 +50,7 @@ const authenticate = async (
 
         return cookies.join('; ');
     } catch (err) {
-        throw new Error(`Could not authenticate user {username}`);
+        throw new Error(`Could not authenticate user ${username}`);
     }
 };
 
@@ -59,13 +59,9 @@ const executeRequest = async (
     data: { [key: string]: string | undefined }
 ): Promise<void> => {
     if (cookieString === null) {
-        if (!process.env.NP_USERNAME || !process.env.NP_PASSWORD) {
-            throw new Error('NP_USERNAME and NP_PASSWORD must be set in env');
-        }
-
         cookieString = await authenticate(
-            process.env.NP_USERNAME,
-            process.env.NP_PASSWORD
+            global.options.username,
+            global.options.password
         );
     }
 
@@ -83,13 +79,9 @@ const executeRequest = async (
 
 const requestPage = async (path: string): Promise<string> => {
     if (cookieString === null) {
-        if (!process.env.NP_USERNAME || !process.env.NP_PASSWORD) {
-            throw new Error('NP_USERNAME and NP_PASSWORD must be set in env');
-        }
-
         cookieString = await authenticate(
-            process.env.NP_USERNAME,
-            process.env.NP_PASSWORD
+            global.options.username,
+            global.options.password
         );
     }
 

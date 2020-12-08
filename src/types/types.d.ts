@@ -1,3 +1,14 @@
+declare global {
+    namespace NodeJS {
+        interface Global {
+            document: Document;
+            window: Window;
+            navigator: Navigator;
+            options: CliOptions;
+        }
+    }
+}
+
 export interface StockListing {
     ticker: string;
     volume: number;
@@ -34,4 +45,11 @@ export interface TransactionRecord {
 export interface BuyStrategy {
     price: number;
     volume: number;
+}
+
+export interface CliOptions {
+    username: string;
+    password: string;
+    logFile: string;
+    authEnv: boolean;
 }
