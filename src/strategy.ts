@@ -1,17 +1,12 @@
 import { logTransactonRecord } from './logger';
 import { buyStocks, getNP, getStockListings } from './neopetsApi';
-import { BuyStrategy, Order } from './types/types';
+import { BuyStrategy, Order, TransactionRecord } from './types/types';
 
 const MIN_FUNDS = 20;
 
-const DEFAULT_BUY_STRATEGY: BuyStrategy = {
-    price: 15,
-    volume: 1000,
-};
-
 const executeBuyStrategy = async (
-    strategy: BuyStrategy = DEFAULT_BUY_STRATEGY
-): Promise<void> => {
+    strategy: BuyStrategy
+): Promise<TransactionRecord> => {
     const { price: buyPrice, volume: strategyVolume } = strategy;
 
     const stockListings = await getStockListings();
@@ -29,7 +24,7 @@ const executeBuyStrategy = async (
     );
 
     if (viableStocks.length === 0) {
-        return;
+        throw Error('Nothing to trade');
     }
 
     let buyOrders: Order[] = [];
@@ -67,7 +62,7 @@ const executeBuyStrategy = async (
     ) as Order[];
 
     if (fulfilledOrders.length === 0) {
-        return;
+        throw new Error('Order not fulfilled');
     }
 
     const pl = fulfilledOrders.reduce(
@@ -80,12 +75,16 @@ const executeBuyStrategy = async (
         0
     );
 
-    logTransactonRecord({
+    const transactionRecord: TransactionRecord = {
         date: new Date(),
         type: 'BUY',
         orders: fulfilledOrders,
         pl,
-    });
+    };
+
+    logTransactonRecord(transactionRecord);
+
+    return transactionRecord;
 };
 
 export { executeBuyStrategy as buyStrategy };

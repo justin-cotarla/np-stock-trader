@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node --files src/index.ts",
+    "dev": "ts-node --files index.ts",
     "build": "rm -rf dist/ && tsc",
     "start": "node dist/index.js"
   },
@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "axios": "^0.21.0",
+    "commander": "^6.2.0",
     "cookie": "^0.4.1",
     "dotenv": "^8.2.0",
     "form-data": "^3.0.0",

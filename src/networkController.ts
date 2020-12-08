@@ -31,25 +31,27 @@ const authenticate = async (
         password,
     });
 
-    const res = await Axios.post(
-        `${NEOPETS_BASE_URL}/login.phtml`,
-        loginForm.toString(),
-        {
-            validateStatus: (status) =>
-                status === 302 || (status >= 200 && status < 300),
-            maxRedirects: 0,
-            headers: {
-                ...baseHeaders,
-                'Content-Length': loginForm.toString().length.toString(),
-            },
-        }
-    );
+    try {
+        const res = await Axios.post(
+            `${NEOPETS_BASE_URL}/login.phtml`,
+            loginForm.toString(),
+            {
+                validateStatus: (status) => status === 302,
+                maxRedirects: 0,
+                headers: {
+                    ...baseHeaders,
+                    'Content-Length': loginForm.toString().length.toString(),
+                },
+            }
+        );
+        const cookies = res.headers['set-cookie'].map(
+            (cookie: string) => cookie.split('; ')[0]
+        );
 
-    const cookies = res.headers['set-cookie'].map(
-        (cookie: string) => cookie.split('; ')[0]
-    );
-
-    return cookies.join('; ');
+        return cookies.join('; ');
+    } catch (err) {
+        throw new Error(`Could not authenticate user {username}`);
+    }
 };
 
 const executeRequest = async (

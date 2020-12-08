@@ -25,7 +25,7 @@ const getNP = async (): Promise<number> => {
     const regex = /<a id='npanchor' href="\/inventory.phtml">([\d,]*)<\/a>/;
 
     const indexPage = await requestPage('/index.phtml');
-    const np = parseInt(regex.exec(indexPage)![1].replace(',', ''), 10);
+    const np = parseInt(regex.exec(indexPage)![1].replace(',', ''));
 
     return np;
 };
@@ -55,8 +55,8 @@ const getStockListings = async (): Promise<StockListing[]> => {
                 ...listings,
                 {
                     ticker: currentListing[1],
-                    volume: parseInt(currentListing[2], 10),
-                    price: parseInt(currentListing[3], 10),
+                    volume: parseInt(currentListing[2]),
+                    price: parseInt(currentListing[3]),
                 },
             ];
         }
@@ -116,7 +116,7 @@ const getPortfolio = async (): Promise<Portfolio> => {
             validateRegexResult(currentQuantity, 1)
         ) {
             const ticker = currentTicker[1];
-            const volume = parseInt(currentQuantity[1].replace(',', ''), 10);
+            const volume = parseInt(currentQuantity[1].replace(',', ''));
             portfolio = {
                 ...portfolio,
                 [ticker]: volume,
@@ -148,7 +148,7 @@ const getBatches = async (): Promise<Batch[]> => {
             currentInstruction !== null &&
             validateRegexResult(currentInstruction, 1)
         ) {
-            const orderVolume = parseInt(currentVolume[1].replace(',', ''), 10);
+            const orderVolume = parseInt(currentVolume[1].replace(',', ''));
             const orderTicker = currentInstruction[1];
             const orderInstruction = currentInstruction[0];
 
