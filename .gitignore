@@ -1,4 +1,4 @@
 node_modules
 .env
-transaction_log.csv
+transactions.csv
 dist/

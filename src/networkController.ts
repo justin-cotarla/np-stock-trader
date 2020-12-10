@@ -67,7 +67,8 @@ const executeRequest = async (
 
     const form = new URLSearchParams(data);
     await Axios.post(`${NEOPETS_BASE_URL}${path}`, form.toString(), {
-        validateStatus: (status) => status === 302,
+        validateStatus: (status) =>
+            status === 302 || (status >= 200 && status < 300),
         maxRedirects: 0,
         headers: {
             ...baseHeaders,

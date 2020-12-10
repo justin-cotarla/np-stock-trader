@@ -16,11 +16,11 @@ const sellRatios = {
 
 export const getSellRatio = (price: number): number => {
     let sellRatio = 0;
-    Object.entries(sellRatios).forEach(([mapPrice, mapRatio]) => {
+    for (const [mapPrice, mapRatio] of Object.entries(sellRatios)) {
         if (price < parseInt(mapPrice)) {
             return sellRatio;
         }
         sellRatio = mapRatio;
-    });
+    }
     return 0;
 };
