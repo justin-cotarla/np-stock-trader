@@ -71,16 +71,23 @@ cliOptions
     );
 
 cliOptions
-    .command('sell [min-price]')
+    .command('sell [min-price] [buy-price]')
     .description('execute sell strategy')
-    .action(async (minPrice: string = DefaultArgs.MIN_PRICE, cmdObj) => {
-        setConfig(cmdObj.parent);
+    .action(
+        async (
+            minPrice: string = DefaultArgs.MIN_PRICE,
+            buyPrice: string = DefaultArgs.BUY_PRICE,
+            cmdObj
+        ) => {
+            setConfig(cmdObj.parent);
 
-        const record = await executeSellStrategy({
-            minPrice: parseInt(minPrice),
-        });
-        console.log(record);
-    });
+            const record = await executeSellStrategy({
+                minPrice: parseInt(minPrice),
+                buyPrice: parseInt(buyPrice),
+            });
+            console.log(record);
+        }
+    );
 
 cliOptions
     .command('balance')

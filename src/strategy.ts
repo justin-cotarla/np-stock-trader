@@ -107,7 +107,7 @@ const executeBuyStrategy = async (
 const executeSellStrategy = async (
     strategy: SellStrategy
 ): Promise<TransactionRecord> => {
-    const { minPrice } = strategy;
+    const { minPrice, buyPrice } = strategy;
 
     const stockListings = await getStockListings();
     const portfolio = await getPortfolio();
@@ -140,7 +140,12 @@ const executeSellStrategy = async (
         0
     );
 
-    if (potentialSellPrice <= SELL_COMMISSION) {
+    const stocksBuyPrice = sellOrders.reduce(
+        (acc, { volume }) => acc + volume * buyPrice,
+        0
+    );
+
+    if (potentialSellPrice <= stocksBuyPrice + SELL_COMMISSION) {
         throw new Error('Stock not sold: no gain');
     }
 

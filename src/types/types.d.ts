@@ -49,6 +49,7 @@ export interface BuyStrategy {
 
 export interface SellStrategy {
     minPrice: number;
+    buyPrice: number;
 }
 
 export interface CliOptions {
