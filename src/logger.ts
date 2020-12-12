@@ -1,4 +1,5 @@
 import fs from 'fs';
+
 import { TransactionRecord } from './types/types';
 
 const logTransactionRecord = async (

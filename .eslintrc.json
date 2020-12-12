@@ -5,6 +5,9 @@
     },
     "extends": [
         "eslint:recommended",
+        "plugin:import/errors",
+        "plugin:import/warnings",
+        "plugin:import/typescript",
         "plugin:@typescript-eslint/recommended",
         "prettier",
         "prettier/react",
@@ -24,7 +27,8 @@
         "@typescript-eslint/explicit-function-return-type": "error",
         "import/extensions": "off",
         "import/prefer-default-export": "off",
-        "no-console": "off"
+        "no-console": "off",
+        "import/order": ["error", {"newlines-between": "always"}]
     },
     "settings": {
         "import/resolver": {

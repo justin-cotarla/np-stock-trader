@@ -1,6 +1,11 @@
 import dotenv from 'dotenv';
 import { createCommand } from 'commander';
-import { executeBuyStrategy, executeSellStrategy } from './strategy';
+
+import {
+    calculateProfit,
+    executeBuyStrategy,
+    executeSellStrategy,
+} from './strategy';
 import { DefaultArgs, DEFAULT_CLI_OPTIONS } from './constants';
 import {
     getBatches,
@@ -111,6 +116,15 @@ cliOptions
         setConfig(cmdObj.parent);
         const listings = await getStockListings();
         console.log(JSON.stringify(listings, null, 2));
+    });
+
+cliOptions
+    .command('profit <buy-price>')
+    .description('calculate profit from transaction log given a buy price')
+    .action(async (buyPrice: string, cmdObj) => {
+        setConfig(cmdObj.parent);
+        const profit = await calculateProfit(parseInt(buyPrice));
+        console.log(`Profit: ${profit} NP`);
     });
 
 const run = async (): Promise<void> => {

@@ -1,7 +1,7 @@
 # np-stock-trader
 A JS Neopets Stock Trading Utility
 
-This script provides a CLI interface for interacting with [Neopets](http://neopets.com)' stock exchange.
+This script provides a CLI utility for interacting with the [Neopets](http://neopets.com) stock exchange.
 
 ## Usage
 ```
@@ -21,6 +21,7 @@ Commands:
   portfolio                  display portfolio
   batches                    display portfolio batches
   listings                   display stock listings
+  profit <buy-price>         calculate profit from transaction log given a buy price
   help [command]             display help for command
 ```
 

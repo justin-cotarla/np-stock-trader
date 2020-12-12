@@ -1,3 +1,6 @@
+import fs from 'fs';
+import readline from 'readline';
+
 import { logTransactionRecord } from './logger';
 import {
     buyStocks,
@@ -14,7 +17,7 @@ import {
     TransactionRecord,
 } from './types/types';
 
-const MIN_FUNDS = 20;
+const SELL_COMMISSION = 20;
 
 const executeBuyStrategy = async (
     strategy: BuyStrategy
@@ -27,8 +30,8 @@ const executeBuyStrategy = async (
     const projectedNp = np - buyPrice * strategyVolume;
 
     const buyVolume =
-        projectedNp < MIN_FUNDS
-            ? Math.floor(np - MIN_FUNDS / buyPrice)
+        projectedNp < SELL_COMMISSION
+            ? Math.floor(np - SELL_COMMISSION / buyPrice)
             : strategyVolume;
 
     const viableStocks = stockListings.filter(
@@ -115,14 +118,30 @@ const executeSellStrategy = async (
             availableTickers.includes(ticker) && price >= minPrice
     );
 
-    const sellOrders: Order[] = viableStocks.map(({ price, ticker }) => {
-        const sellRatio = getSellRatio(price);
-        const sellVolume = Math.floor(sellRatio * portfolio[ticker]);
-        return { ticker, volume: sellVolume };
-    });
+    const sellOrders: Order[] = viableStocks
+        .map(({ price, ticker }) => {
+            const sellRatio = getSellRatio(price);
+            const sellVolume = Math.floor(sellRatio * portfolio[ticker]);
+            return { ticker, volume: sellVolume };
+        })
+        .filter(({ volume }) => volume !== 0);
 
     if (sellOrders.length === 0) {
         throw new Error('Nothing was sold');
+    }
+
+    const potentialSellPrice = sellOrders.reduce(
+        (acc, { ticker, volume }) =>
+            acc +
+            (stockListings.find(
+                ({ ticker: listingTicker }) => listingTicker === ticker
+            )?.price ?? 0) *
+                volume,
+        0
+    );
+
+    if (potentialSellPrice <= SELL_COMMISSION) {
+        throw new Error('Stock not sold: no gain');
     }
 
     const fulfilledOrders = await sellStock(sellOrders);
@@ -151,4 +170,31 @@ const executeSellStrategy = async (
     return transactionRecord;
 };
 
-export { executeBuyStrategy, executeSellStrategy };
+const calculateProfit = async (buyPrice: number): Promise<number> => {
+    const logStream = fs.createReadStream(global.options.logFile);
+    const logReader = readline.createInterface({
+        input: logStream,
+    });
+
+    let profit = 0;
+
+    for await (const line of logReader) {
+        const [, action, pl, tickers] = line.split(', ');
+
+        if (action === 'BUY') {
+            continue;
+        }
+
+        const soldStockCount = tickers
+            .split('; ')
+            .reduce((acc, order) => acc + parseInt(order.split(':')[1]), 0);
+        const stockPrice = soldStockCount * buyPrice;
+
+        profit = profit - stockPrice + parseInt(pl) - SELL_COMMISSION;
+    }
+
+    logStream.close();
+    return profit;
+};
+
+export { executeBuyStrategy, executeSellStrategy, calculateProfit };

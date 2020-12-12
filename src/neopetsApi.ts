@@ -25,7 +25,12 @@ const getNP = async (): Promise<number> => {
     const regex = /<a id='npanchor' href="\/inventory.phtml">([\d,]*)<\/a>/;
 
     const indexPage = await requestPage('/index.phtml');
-    const np = parseInt(regex.exec(indexPage)![1].replace(',', ''));
+    const npParse = regex.exec(indexPage);
+
+    if (npParse === null) {
+        throw new Error('Could not get balance');
+    }
+    const np = parseInt(npParse[1].replace(',', ''));
 
     return np;
 };
