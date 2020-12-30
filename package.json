@@ -1,6 +1,6 @@
 {
   "name": "np-stock-trader",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Neopets Stocks Trader",
   "main": "dist/index.js",
   "scripts": {

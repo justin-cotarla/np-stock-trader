@@ -22,7 +22,7 @@ const validateRegexResult = (
 };
 
 const getNP = async (): Promise<number> => {
-    const regex = /<a id='npanchor' href="\/inventory.phtml">([\d,]*)<\/a>/;
+    const regex = /<span id="npanchor" class="np-text__2020">([\d,]*)<\/span>/;
 
     const indexPage = await requestPage('/index.phtml');
     const npParse = regex.exec(indexPage);
