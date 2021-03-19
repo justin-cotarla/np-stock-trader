@@ -31,7 +31,7 @@ const getNP = async (): Promise<number> => {
     if (npParse === null) {
         throw new Error('Could not get balance');
     }
-    const np = parseInt(npParse[1].replace(',', ''));
+    const np = parseInt(npParse[1].replace(/,/g, ''));
 
     return np;
 };
