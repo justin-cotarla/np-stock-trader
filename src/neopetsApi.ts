@@ -7,6 +7,7 @@ import {
     Order,
     Portfolio,
     StockListing,
+    TrudyResponse,
 } from './types/types';
 
 const validateRegexResult = (
@@ -249,6 +250,19 @@ const sellStock = async (orders: Order[]): Promise<Order[]> => {
     return orders;
 };
 
+const trudysSurprise = async (): Promise<TrudyResponse> => {
+    await requestPage('/trudys_surprise.phtml');
+    const response = await executeRequest<TrudyResponse>(
+        '/trudydaily/ajax/claimprize.php',
+        {
+            action: 'beginroll',
+        }
+    );
+    await executeRequest('/trudydaily/ajax/claimprize.php', {
+        action: 'prizeclaimed',
+    });
+    return response;
+};
 export {
     getNP,
     getStockListings,
@@ -256,4 +270,5 @@ export {
     getPortfolio,
     sellStock,
     getBatches,
+    trudysSurprise,
 };

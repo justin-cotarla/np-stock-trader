@@ -1,19 +1,17 @@
 import dotenv from 'dotenv';
 import { createCommand } from 'commander';
 
-import {
-    calculateProfit,
-    executeBuyStrategy,
-    executeSellStrategy,
-} from './strategy';
+import { executeBuyStrategy, executeSellStrategy } from './strategy';
 import { DefaultArgs, DEFAULT_CLI_OPTIONS } from './constants';
 import {
     getBatches,
     getNP,
     getPortfolio,
     getStockListings,
+    trudysSurprise,
 } from './neopetsApi';
 import { CliOptions } from './types/types';
+import { calculateProfit, logTrudysSurprise } from './logController';
 
 const setConfig = ({
     username,
@@ -132,6 +130,29 @@ cliOptions
         setConfig(cmdObj.parent);
         const profit = await calculateProfit(parseInt(buyPrice));
         console.log(`Profit: ${profit} NP`);
+    });
+
+cliOptions
+    .command('trudy')
+    .description("Play Trudy's Surprise")
+    .action(async (cmdObj) => {
+        setConfig(cmdObj.parent);
+        const trudyResponse = await trudysSurprise();
+        if (trudyResponse.error) {
+            console.log("Error playing Trudy's surprise");
+            return;
+        }
+
+        const npPrize = trudyResponse?.prizes?.find(({ name }) => name === 'NP')
+            ?.value;
+
+        if (npPrize === undefined) {
+            console.log("No NP in Trudy's Surprise prize");
+            return;
+        }
+
+        logTrudysSurprise(parseInt(npPrize));
+        console.log(`Trudy's Surpize prize: ${npPrize}`);
     });
 
 const run = async (): Promise<void> => {

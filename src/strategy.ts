@@ -1,7 +1,5 @@
-import fs from 'fs';
-import readline from 'readline';
-
-import { logTransactionRecord } from './logger';
+import { SELL_COMMISSION } from './constants';
+import { logTransactionRecord } from './logController';
 import {
     buyStocks,
     getNP,
@@ -16,8 +14,6 @@ import {
     SellStrategy,
     TransactionRecord,
 } from './types/types';
-
-const SELL_COMMISSION = 20;
 
 const executeBuyStrategy = async (
     strategy: BuyStrategy
@@ -175,31 +171,4 @@ const executeSellStrategy = async (
     return transactionRecord;
 };
 
-const calculateProfit = async (buyPrice: number): Promise<number> => {
-    const logStream = fs.createReadStream(global.options.logFile);
-    const logReader = readline.createInterface({
-        input: logStream,
-    });
-
-    let profit = 0;
-
-    for await (const line of logReader) {
-        const [, action, pl, tickers] = line.split(', ');
-
-        if (action === 'BUY') {
-            continue;
-        }
-
-        const soldStockCount = tickers
-            .split('; ')
-            .reduce((acc, order) => acc + parseInt(order.split(':')[1]), 0);
-        const stockPrice = soldStockCount * buyPrice;
-
-        profit = profit - stockPrice + parseInt(pl) - SELL_COMMISSION;
-    }
-
-    logStream.close();
-    return profit;
-};
-
-export { executeBuyStrategy, executeSellStrategy, calculateProfit };
+export { executeBuyStrategy, executeSellStrategy };

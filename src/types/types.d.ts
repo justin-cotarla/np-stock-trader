@@ -58,3 +58,18 @@ export interface CliOptions {
     logFile: string;
     authEnv: boolean;
 }
+
+export interface TrudyResponse {
+    error: string;
+    gameState?: number;
+    prizes?: TrudyPrize[];
+    prizeArrayNew?: null;
+    badLuck?: string;
+    adjustedNp?: number;
+}
+
+export interface TrudyPrize {
+    url: string;
+    name: string;
+    value: string;
+}

@@ -21,6 +21,16 @@ const baseHeaders = {
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36',
 };
 
+const getCookie = async (): Promise<string> => {
+    if (cookieString === null) {
+        cookieString = await authenticate(
+            global.options.username,
+            global.options.password
+        );
+    }
+    return cookieString;
+};
+
 const authenticate = async (
     username: string,
     password: string
@@ -55,43 +65,39 @@ const authenticate = async (
     }
 };
 
-const executeRequest = async (
+const executeRequest = async <T>(
     path: string,
     data: { [key: string]: string | undefined }
-): Promise<void> => {
-    if (cookieString === null) {
-        cookieString = await authenticate(
-            global.options.username,
-            global.options.password
-        );
-    }
+): Promise<T> => {
+    const cookie = await getCookie();
 
     const form = new URLSearchParams(data);
-    await Axios.post(`${NEOPETS_BASE_URL}${path}`, form.toString(), {
-        validateStatus: (status) =>
-            status === 302 || (status >= 200 && status < 300),
-        maxRedirects: 0,
-        headers: {
-            ...baseHeaders,
-            'Content-Length': form.toString().length.toString(),
-            Cookie: cookieString,
-        },
-    });
+    const response = await Axios.post<T>(
+        `${NEOPETS_BASE_URL}${path}`,
+        form.toString(),
+        {
+            validateStatus: (status) =>
+                status === 302 || (status >= 200 && status < 300),
+            maxRedirects: 0,
+            headers: {
+                ...baseHeaders,
+                'Content-Length': form.toString().length.toString(),
+                Cookie: cookie,
+            },
+        }
+    );
+
+    return response.data;
 };
 
 const requestPage = async (path: string): Promise<string> => {
-    if (cookieString === null) {
-        cookieString = await authenticate(
-            global.options.username,
-            global.options.password
-        );
-    }
+    const cookie = await getCookie();
 
     const res = await Axios.get(`${NEOPETS_BASE_URL}${path}`, {
         maxRedirects: 0,
         headers: {
             ...baseHeaders,
-            Cookie: cookieString,
+            Cookie: cookie,
         },
     });
 
