@@ -22,6 +22,7 @@ Commands:
   batches                    display portfolio batches
   listings                   display stock listings
   profit <buy-price>         calculate profit from transaction log given a buy price
+  trudy                      Play Trudy's Surprise
   help [command]             display help for command
 ```
 
