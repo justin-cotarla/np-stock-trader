@@ -8,12 +8,7 @@ import {
     sellStock,
 } from './neopetsApi';
 import { getSellRatio } from './sellRatio';
-import {
-    BuyStrategy,
-    Order,
-    SellStrategy,
-    TransactionRecord,
-} from './types/types';
+import { BuyStrategy, Order, SellStrategy, TransactionRecord } from './types';
 
 const executeBuyStrategy = async (
     strategy: BuyStrategy

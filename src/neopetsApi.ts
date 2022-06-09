@@ -8,7 +8,7 @@ import {
     Portfolio,
     StockListing,
     TrudyResponse,
-} from './types/types';
+} from './types';
 
 const validateRegexResult = (
     regexResult: RegExpExecArray,
@@ -37,7 +37,8 @@ const getNP = async (): Promise<number> => {
 };
 
 const getRefToken = (page: string): string => {
-    const refTokenRegex = /<input type='hidden' name='_ref_ck' value='([a-f\d]+)'>/;
+    const refTokenRegex =
+        /<input type='hidden' name='_ref_ck' value='([a-f\d]+)'>/;
 
     const refTokenMatch = refTokenRegex.exec(page);
     if (!refTokenMatch || !refTokenMatch[1]) {
@@ -47,7 +48,8 @@ const getRefToken = (page: string): string => {
 };
 
 const getStockListings = async (): Promise<StockListing[]> => {
-    const regex = /company_id=[\d]+'><b>([A-Z]+)<\/b><\/a><\/td><td bgcolor='#eeeeff'>[\w. !-]+<\/td><td bgcolor='#[a-f]{6}' align=center>([\d]*)<\/td><td bgcolor='#[a-f]{6}' align=center><b>[\d]*<\/b><\/td><td bgcolor='#[a-f]{6}' align=center><b>([\d]*)<\/b><\/td><td bgcolor/g;
+    const regex =
+        /company_id=[\d]+'><b>([A-Z]+)<\/b><\/a><\/td><td bgcolor='#eeeeff'>[\w. !-]+<\/td><td bgcolor='#[a-f]{6}' align=center>([\d]*)<\/td><td bgcolor='#[a-f]{6}' align=center><b>[\d]*<\/b><\/td><td bgcolor='#[a-f]{6}' align=center><b>([\d]*)<\/b><\/td><td bgcolor/g;
     const listingsPage = await requestPage(
         '/stockmarket.phtml?type=list&full=true'
     );
@@ -79,31 +81,31 @@ const buyStocks = async (orders: Order[]): Promise<(Order | null)[]> => {
 
     const refToken = getRefToken(buyPage);
 
-    const orderPromises = orders.map(
-        async (order): Promise<Order | null> => {
-            const { ticker, volume } = order;
-            const data = {
-                _ref_ck: refToken,
-                type: 'buy',
-                ticker_symbol: ticker,
-                amount_shares: volume.toString(),
-            };
-            try {
-                await executeRequest('/process_stockmarket.phtml', data);
-            } catch (error) {
-                return null;
-            }
-            return order;
+    const orderPromises = orders.map(async (order): Promise<Order | null> => {
+        const { ticker, volume } = order;
+        const data = {
+            _ref_ck: refToken,
+            type: 'buy',
+            ticker_symbol: ticker,
+            amount_shares: volume.toString(),
+        };
+        try {
+            await executeRequest('/process_stockmarket.phtml', data);
+        } catch (error) {
+            return null;
         }
-    );
+        return order;
+    });
 
     const fulfilledOrders = await Promise.all(orderPromises);
     return fulfilledOrders;
 };
 
 const getPortfolio = async (): Promise<Portfolio> => {
-    const tickerRegex = /<td align="center"><a href="stockmarket\.phtml\?type=buy&ticker=([A-Z]+)/g;
-    const quantityRegex = /<\/b><\/font>\n\t{4}<\/td>\n\t{4}<td align="center">\n([\d,]+)\t{4}<\/td>/g;
+    const tickerRegex =
+        /<td align="center"><a href="stockmarket\.phtml\?type=buy&ticker=([A-Z]+)/g;
+    const quantityRegex =
+        /<\/b><\/font>\n\t{4}<\/td>\n\t{4}<td align="center">\n([\d,]+)\t{4}<\/td>/g;
 
     const portfolioPage = await requestPage(
         '/stockmarket.phtml?type=portfolio'
@@ -210,10 +212,8 @@ const sellStock = async (orders: Order[]): Promise<Order[]> => {
         let remainingVolume = volume;
 
         for (let i = 0; i < sortedBatches.length; i += 1) {
-            const {
-                instruction: batchInstruction,
-                volume: batchVolume,
-            } = sortedBatches[i];
+            const { instruction: batchInstruction, volume: batchVolume } =
+                sortedBatches[i];
 
             const sellVolume =
                 remainingVolume > batchVolume ? batchVolume : remainingVolume;

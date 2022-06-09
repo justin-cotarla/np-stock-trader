@@ -2,13 +2,14 @@ import { URLSearchParams } from 'url';
 
 import Axios from 'axios';
 
+import { getContext } from './context';
+
 let cookieString: string | null = null;
 
 const NEOPETS_BASE_URL = 'http://www.neopets.com';
 
 const baseHeaders = {
-    Accept:
-        'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+    Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
     'Accept-Encoding': 'gzip, deflate',
     'Accept-Language': 'en-US,en;q=0.9',
     'Cache-Control': 'max-age=0',
@@ -24,8 +25,8 @@ const baseHeaders = {
 const getCookie = async (): Promise<string> => {
     if (cookieString === null) {
         cookieString = await authenticate(
-            global.options.username,
-            global.options.password
+            getContext().options.username,
+            getContext().options.password
         );
     }
     return cookieString;
@@ -67,7 +68,7 @@ const authenticate = async (
 
 const executeRequest = async <T>(
     path: string,
-    data: { [key: string]: string | undefined }
+    data: { [key: string]: string }
 ): Promise<T> => {
     const cookie = await getCookie();
 

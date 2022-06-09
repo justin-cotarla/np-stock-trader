@@ -1,8 +1,7 @@
-import dotenv from 'dotenv';
 import { createCommand } from 'commander';
 
 import { executeBuyStrategy, executeSellStrategy } from './strategy';
-import { DefaultArgs, DEFAULT_CLI_OPTIONS } from './constants';
+import { DefaultArgs } from './constants';
 import {
     getBatches,
     getNP,
@@ -10,36 +9,8 @@ import {
     getStockListings,
     trudysSurprise,
 } from './neopetsApi';
-import { CliOptions } from './types/types';
 import { calculateProfit, logTrudysSurprise } from './logController';
-
-const setConfig = ({
-    username,
-    password,
-    logFile,
-    authEnv,
-}: CliOptions): void => {
-    global.options = {
-        ...DEFAULT_CLI_OPTIONS,
-        ...(logFile ? { logFile } : {}),
-        ...(authEnv ? { authEnv } : {}),
-    };
-
-    if (global.options.authEnv) {
-        dotenv.config();
-        global.options = {
-            ...global.options,
-            username: process.env.NP_USERNAME as string,
-            password: process.env.NP_PASSWORD as string,
-        };
-    } else {
-        global.options = {
-            ...global.options,
-            username,
-            password,
-        };
-    }
-};
+import { parseConfig } from './config';
 
 const program = createCommand();
 
@@ -58,7 +29,7 @@ cliOptions
             price: string = DefaultArgs.BUY_PRICE,
             cmdObj
         ) => {
-            setConfig(cmdObj.parent);
+            parseConfig(cmdObj.parent);
 
             const record = await executeBuyStrategy({
                 price: parseInt(price),
@@ -77,7 +48,7 @@ cliOptions
             buyPrice: string = DefaultArgs.BUY_PRICE,
             cmdObj
         ) => {
-            setConfig(cmdObj.parent);
+            parseConfig(cmdObj.parent);
 
             const record = await executeSellStrategy({
                 minPrice: parseInt(minPrice),
@@ -91,7 +62,7 @@ cliOptions
     .command('balance')
     .description('display np balance')
     .action(async (cmdObj) => {
-        setConfig(cmdObj.parent);
+        parseConfig(cmdObj.parent);
         const balance = await getNP();
         console.log(`Balance: ${balance} NP`);
     });
@@ -100,7 +71,7 @@ cliOptions
     .command('portfolio')
     .description('display portfolio')
     .action(async (cmdObj) => {
-        setConfig(cmdObj.parent);
+        parseConfig(cmdObj.parent);
         const portfolio = await getPortfolio();
         console.log(JSON.stringify(portfolio, null, 2));
     });
@@ -109,7 +80,7 @@ cliOptions
     .command('batches')
     .description('display portfolio batches')
     .action(async (cmdObj) => {
-        setConfig(cmdObj.parent);
+        parseConfig(cmdObj.parent);
         const batches = await getBatches();
         console.log(JSON.stringify(batches, null, 2));
     });
@@ -118,7 +89,7 @@ cliOptions
     .command('listings')
     .description('display stock listings')
     .action(async (cmdObj) => {
-        setConfig(cmdObj.parent);
+        parseConfig(cmdObj.parent);
         const listings = await getStockListings();
         console.log(JSON.stringify(listings, null, 2));
     });
@@ -127,7 +98,7 @@ cliOptions
     .command('profit <buy-price>')
     .description('calculate profit from transaction log given a buy price')
     .action(async (buyPrice: string, cmdObj) => {
-        setConfig(cmdObj.parent);
+        parseConfig(cmdObj.parent);
         const profit = await calculateProfit(parseInt(buyPrice));
         console.log(`Profit: ${profit} NP`);
     });
@@ -136,15 +107,16 @@ cliOptions
     .command('trudy')
     .description("Play Trudy's Surprise")
     .action(async (cmdObj) => {
-        setConfig(cmdObj.parent);
+        parseConfig(cmdObj.parent);
         const trudyResponse = await trudysSurprise();
         if (trudyResponse.error) {
             console.log("Error playing Trudy's surprise");
             return;
         }
 
-        const npPrize = trudyResponse?.prizes?.find(({ name }) => name === 'NP')
-            ?.value;
+        const npPrize = trudyResponse?.prizes?.find(
+            ({ name }) => name === 'NP'
+        )?.value;
 
         if (npPrize === undefined) {
             console.log("No NP in Trudy's Surprise prize");
@@ -159,7 +131,7 @@ const run = async (): Promise<void> => {
     try {
         await program.parseAsync(process.argv);
     } catch (err) {
-        console.log(err.message);
+        console.error(err);
     }
 };
 

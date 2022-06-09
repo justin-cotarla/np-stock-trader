@@ -1,14 +1,3 @@
-declare global {
-    namespace NodeJS {
-        interface Global {
-            document: Document;
-            window: Window;
-            navigator: Navigator;
-            options: CliOptions;
-        }
-    }
-}
-
 export interface StockListing {
     ticker: string;
     volume: number;

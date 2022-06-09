@@ -2,7 +2,8 @@ import fs from 'fs';
 import readline from 'readline';
 
 import { SELL_COMMISSION } from './constants';
-import { TransactionRecord } from './types/types';
+import { getContext } from './context';
+import { TransactionRecord } from './types';
 
 const logTransactionRecord = async (
     record: TransactionRecord
@@ -15,16 +16,16 @@ const logTransactionRecord = async (
 
     const line = [date.toJSON(), type, pl.toString(), ordersString].join(', ');
 
-    await fs.promises.appendFile(global.options.logFile, `${line}\n`);
+    await fs.promises.appendFile(getContext().options.logFile, `${line}\n`);
 };
 
 const logTrudysSurprise = async (np: number): Promise<void> => {
     const line = [new Date().toJSON(), 'TRUDY', np.toString()].join(', ');
-    await fs.promises.appendFile(global.options.logFile, `${line}\n`);
+    await fs.promises.appendFile(getContext().options.logFile, `${line}\n`);
 };
 
 const calculateProfit = async (buyPrice: number): Promise<number> => {
-    const logStream = fs.createReadStream(global.options.logFile);
+    const logStream = fs.createReadStream(getContext().options.logFile);
     const logReader = readline.createInterface({
         input: logStream,
     });
