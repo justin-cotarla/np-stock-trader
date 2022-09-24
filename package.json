@@ -1,13 +1,15 @@
 {
   "name": "np-stock-trader",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Neopets Stocks Trader",
   "author": "justin-cotarla",
   "license": "ISC",
   "scripts": {
     "start": "ts-node --files src/index.ts",
+    "debug": "node --inspect -r ts-node/register src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rm -rf dist/ && tsc && rollup --config"
+    "build": "rm -rf dist/ && tsc && rollup --config",
+    "prepare": "husky install"
   },
   "lint-staged": {
     "*.ts": [

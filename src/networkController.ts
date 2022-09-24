@@ -1,25 +1,25 @@
 import { URLSearchParams } from 'url';
 
-import Axios from 'axios';
+import Axios, { AxiosResponse } from 'axios';
 
 import { getContext } from './context';
 
 let cookieString: string | null = null;
 
-const NEOPETS_BASE_URL = 'http://www.neopets.com';
+const NEOPETS_BASE_URL = 'https://www.neopets.com';
 
 const baseHeaders = {
-    Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    'Accept-Encoding': 'gzip, deflate',
+    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+    'Accept-Encoding': 'gzip, deflate, br',
     'Accept-Language': 'en-US,en;q=0.9',
     'Cache-Control': 'max-age=0',
     Connection: 'keep-alive',
     'Content-Type': 'application/x-www-form-urlencoded',
     Host: 'www.neopets.com',
-    Origin: 'http://www.neopets.com',
+    Origin: 'https://www.neopets.com',
     'Upgrade-Insecure-Requests': '1',
     'User-Agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36',
 };
 
 const getCookie = async (): Promise<string> => {
@@ -32,36 +32,48 @@ const getCookie = async (): Promise<string> => {
     return cookieString;
 };
 
+const getPageCookies = async (pageRequest: Promise<AxiosResponse<unknown>>) => {
+    const res = await pageRequest;
+    const cookies: string[] = res.headers['set-cookie'].map(
+        (cookie: string) => cookie.split('; ')[0]
+    );
+
+    return cookies.join('; ');
+};
+
 const authenticate = async (
     username: string,
     password: string
 ): Promise<string> => {
     const loginForm = new URLSearchParams({
         destination: '',
-        return_format: '1',
+        return_format: 'json',
         username,
         password,
     });
 
     try {
-        const res = await Axios.post(
-            `${NEOPETS_BASE_URL}/login.phtml`,
-            loginForm.toString(),
-            {
-                validateStatus: (status) => status === 302,
+        const baseCookies = await getPageCookies(
+            Axios.get(`${NEOPETS_BASE_URL}/login/`, {
+                headers: baseHeaders,
+            })
+        );
+
+        const authCookies = await getPageCookies(
+            Axios.post(`${NEOPETS_BASE_URL}/login.phtml`, loginForm, {
+                validateStatus: (status) => status === 200,
                 maxRedirects: 0,
                 headers: {
                     ...baseHeaders,
+                    cookie: baseCookies,
                     'Content-Length': loginForm.toString().length.toString(),
                 },
-            }
-        );
-        const cookies = res.headers['set-cookie'].map(
-            (cookie: string) => cookie.split('; ')[0]
+            })
         );
 
-        return cookies.join('; ');
+        return [baseCookies, authCookies].join('; ');
     } catch (err) {
+        console.error(err);
         throw new Error(`Could not authenticate user ${username}`);
     }
 };
